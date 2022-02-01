@@ -9,32 +9,19 @@ export default class MemoryProvider implements ConfigProvider {
         this.configs = [];
     }
 
-    getName() {
-        return 'memory';
+    private findConfigIndex(name: string) {
+        return this.configs.findIndex(c => c.name === name);
     }
 
-    private isNameTaken(name: string, userId: string): boolean {
-        return this.configs.findIndex(c => c.name === name && c.userId === userId) !== -1;
-    }
-
-    private assertConfigExists(userId: string, name: string) {
-        const configIndex = this.configs.findIndex(c => c.name === name && c.userId === userId);
-        if (configIndex === -1) {
-            throw new ConfigProviderError('Configuration not found!');
-        }
-
-        return configIndex;
-    }
-
-    addConfig(userId: string, name: string, config: any): Promise<string> {
-        if (this.isNameTaken(name, userId)) {
-            throw new ConfigProviderError('Configuration name is already taken!');
+    addConfig(name: string, config: any): Promise<string> {
+        const configIndex = this.findConfigIndex(name);
+        if (configIndex !== -1) {
+            throw new Error('Configuration already exists!');
         }
 
         const id = v4();
         this.configs.push({
             id,
-            userId,
             name,
             config
         });
@@ -42,17 +29,22 @@ export default class MemoryProvider implements ConfigProvider {
         return Promise.resolve(id);
     }
 
-    getConfig(userId: string, name: string): Promise<ServiceConfiguration> {
-        const configIndex = this.assertConfigExists(userId, name);
+    getConfig(name: string): Promise<ServiceConfiguration> {
+        const configIndex = this.findConfigIndex(name);
+        if (configIndex === -1) {
+            throw new Error('Configuration not found!');
+        }
         return Promise.resolve(this.configs[configIndex]);
     }
 
-    removeConfig(userId: string, name: string): Promise<void> {
-        const configIndex = this.assertConfigExists(userId, name);
-        const { id } = this.configs[configIndex];
-        this.configs = this.configs.filter(c => c.id !== id);
+    removeConfig(name: string): Promise<void> {
+        const configIndex = this.findConfigIndex(name);
+        if (configIndex === -1) {
+            throw new Error('Configuration not found!');
+        }
+        this.configs = this.configs.filter(c => c.name !== name);
+
         return Promise.resolve();
     }
-
 
 }

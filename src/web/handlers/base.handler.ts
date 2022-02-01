@@ -2,16 +2,13 @@ import { ConfigProvider } from "../../providers/ConfigProvider";
 import { Express } from 'express';
 import { logger } from "../../util/logger";
 import { Response } from 'express';
-import { IgnisConnector } from "../../util/ignis.connector";
-import { Session } from "../../util/types/session";
+import apiKeys from '../../../apiKeys.json';
 
 export abstract class BaseHandler {
     protected configProvider: ConfigProvider;
-    protected ignisConnector: IgnisConnector;
 
     constructor(configProvider: ConfigProvider) {
         this.configProvider = configProvider;
-        this.ignisConnector = new IgnisConnector();
     }
 
     abstract registerPath(app: Express);
@@ -21,16 +18,11 @@ export abstract class BaseHandler {
         return res.status(400).json({ error: err.message });
     };
 
-    protected async validateSession(session: string): Promise<Session> {
-        if (session === undefined || session === '') {
-            throw new Error('Invalid session!');
+    protected getServiceName(apiKey: string) {
+        if (!Object.values(apiKeys).includes(apiKey)) {
+            throw new Error('Invalid api-key!');
         }
 
-        const sessionValid = await this.ignisConnector.sessionValid(session);
-        if (!sessionValid) {
-            throw new Error('Invalid session!');
-        }
-
-        return this.ignisConnector.decodeSession(session);
+        return Object.keys(apiKeys).find(k => apiKeys[k] === apiKey);
     }
 }

@@ -16,6 +16,9 @@ export class WebServer {
     public registerHandlers(handler: registrationHandler) {
         this.app.use(json());
         handler(this.app);
+        this.app.use((req, res) => {
+            return res.sendStatus(404);
+        })
     }
 
     public run() {

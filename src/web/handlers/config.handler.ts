@@ -5,33 +5,30 @@ export class ConfigHandler extends BaseHandler {
 
     registerPath(app: Express) {
 
-        app.get('/:service', async (req, res) => {
+        app.get('/', async (req, res) => {
             try {
-                const { service } = req.params;
-                const { userId } = await this.validateSession(req.header('session'));
-                const { config } = await this.configProvider.getConfig(userId, service);
+                const service = this.getServiceName(req.header('x-api-key'));
+                const { config } = await this.configProvider.getConfig(service);
                 return res.json(config).status(200);
             } catch (err) {
                 return this.handleError(err, res);
             }
         });
 
-        app.post('/:service', async (req, res) => {
+        app.post('/', async (req, res) => {
             try {
-                const { service } = req.params;
-                const { userId } = await this.validateSession(req.header('session'));
-                await this.configProvider.addConfig(userId, service, req.body);
+                const service = this.getServiceName(req.header('x-api-key'));
+                await this.configProvider.addConfig(service, req.body);
                 return res.sendStatus(200);
             } catch (err) {
                 return this.handleError(err, res);
             }
         });
 
-        app.delete('/:service', async (req, res) => {
+        app.delete('/', async (req, res) => {
             try {
-                const { service } = req.params;
-                const { userId } = await this.validateSession(req.header('session'));
-                await this.configProvider.removeConfig(userId, service);
+                const service = this.getServiceName(req.header('x-api-key'));
+                await this.configProvider.removeConfig(service);
                 return res.sendStatus(200);
             } catch (err) {
                 return this.handleError(err, res);
