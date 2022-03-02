@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
+    "start": "node ./build/index.js",
     "start-dev": "ts-node index.ts"
   },
   "repository": {
