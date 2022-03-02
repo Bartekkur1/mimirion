@@ -1,6 +1,6 @@
 import { config } from 'dotenv';
 
-const { parsed } = config();
+config();
 
 export interface Config {
     PORT: string;
@@ -8,10 +8,9 @@ export interface Config {
 }
 
 export const getConfig = () => {
-    const parseOutput = parsed || process.env;
     const config: Config = {
-        PORT: parseOutput.PORT,
-        PROVIDER: parseOutput.PROVIDER
+        PORT: process.env.PORT,
+        PROVIDER: process.env.PROVIDER
     };
 
     return config;
