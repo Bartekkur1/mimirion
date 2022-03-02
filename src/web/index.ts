@@ -22,8 +22,8 @@ export class WebServer {
     }
 
     public run() {
-        const { APP_PORT } = getConfig();
-        const serverPort = parseInt(APP_PORT);
+        const { PORT } = getConfig();
+        const serverPort = parseInt(PORT);
         this.app.listen(serverPort, () => {
             logger.info(`Server started on ${serverPort}`);
         });
