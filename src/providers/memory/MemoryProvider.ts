@@ -14,7 +14,7 @@ export default class MemoryProvider implements ConfigProvider {
         return Promise.resolve();
     }
 
-    createStore(name: string): Promise<StoreKeys> {
+    createStore(name: string): StoreKeys {
         const id = v4();
 
         this.stores.push({
@@ -24,21 +24,20 @@ export default class MemoryProvider implements ConfigProvider {
             liveVersion: undefined,
         });
 
-        return Promise.resolve(signStore(id, name));
+        return signStore(id, name);
     }
 
-    removeStore(accessKey: string): Promise<void> {
+    removeStore(accessKey: string): void {
         const { id } = validateKey(accessKey);
         if (!this.stores.map(s => s.id).includes(id)) {
             throw new ConfigProviderError('Store not found!', 404);
         }
         this.stores = this.stores.filter(store => store.id !== id);
-        return Promise.resolve();
     }
 
-    getNewVersionLabel(store: ConfigStore): Promise<number> {
+    getNewVersionLabel(store: ConfigStore): number {
         const ids = store.configurations.map(c => c.version.id);
-        return Promise.resolve(ids.length === 0 ? 1 : (Math.max(...ids) + 1));
+        return ids.length === 0 ? 1 : (Math.max(...ids) + 1);
     }
 
     private getStoreByAccessKey(accessKey: string) {
@@ -50,22 +49,21 @@ export default class MemoryProvider implements ConfigProvider {
         return this.stores[storeIndex];
     }
 
-    restoreStore(restoreKey: string): Promise<StoreKeys> {
+    restoreStore(restoreKey: string): StoreKeys {
         const { id } = validateKey(restoreKey);
         const storeIndex = this.stores.findIndex(store => store.id === id);
         if (storeIndex === -1) {
             throw new ConfigProviderError('Invalid restoreKey!', 401);
         }
         const store = this.stores[storeIndex];
-        const keys = signStore(store.id, store.name);
-        return Promise.resolve(keys);
+        return signStore(store.id, store.name);
     }
 
-    async addConfig(accessKey: string, config: Object): Promise<string> {
+    addConfig(accessKey: string, config: Object) {
         validateKey(accessKey);
         const id = v4();
         const store = this.getStoreByAccessKey(accessKey);
-        const versionId = await this.getNewVersionLabel(store);
+        const versionId = this.getNewVersionLabel(store);
 
         store.configurations.push({
             id,
@@ -77,10 +75,10 @@ export default class MemoryProvider implements ConfigProvider {
             config
         });
 
-        return Promise.resolve(id);
+        return id;
     }
 
-    publishConfig(accessKey: string, version: number): Promise<void> {
+    publishConfig(accessKey: string, version: number): void {
         const store = this.getStoreByAccessKey(accessKey);
 
         store.configurations = store.configurations.map(config => {
@@ -94,10 +92,9 @@ export default class MemoryProvider implements ConfigProvider {
 
         store.liveVersion = version;
         store.configurations.find(config => config.version.id === version).version.live = true;
-        return Promise.resolve();
     }
 
-    unpublishConfig(accessKey: string, version: number): Promise<void> {
+    unpublishConfig(accessKey: string, version: number): void {
         const store = this.getStoreByAccessKey(accessKey);
 
         if (store.liveVersion !== undefined && !store.configurations.map(config => config.version.id).includes(version)) {
@@ -106,19 +103,18 @@ export default class MemoryProvider implements ConfigProvider {
 
         store.liveVersion = undefined;
         store.configurations.find(config => config.version.id === version).version.live = false;
-        return Promise.resolve();
     }
 
-    getConfig(accessKey: string): Promise<Config> {
+    getConfig(accessKey: string): Config {
         const store = this.getStoreByAccessKey(accessKey);
         const config = store.configurations.find(config => config.version.id === store.liveVersion);
         if (config === undefined) {
             throw new ConfigProviderError('No published configuration!', 400);
         }
-        return Promise.resolve(config);
+        return config;
     }
 
-    removeConfig(accessKey: string, version: number): Promise<void> {
+    removeConfig(accessKey: string, version: number): void {
         const store = this.getStoreByAccessKey(accessKey);
 
         if (!store.configurations.map(config => config.version.id).includes(version)) {
@@ -130,11 +126,9 @@ export default class MemoryProvider implements ConfigProvider {
         }
 
         store.configurations = store.configurations.filter(config => config.version.id !== version);
-        return Promise.resolve();
     }
 
-    getVersions(accessKey: string): Promise<ConfigVersion[]> {
-        const store = this.getStoreByAccessKey(accessKey);
-        return Promise.resolve(store.configurations.map(config => config.version));
+    getVersions(accessKey: string): ConfigVersion[] {
+        return this.getStoreByAccessKey(accessKey).configurations.map(config => config.version);
     }
 }
