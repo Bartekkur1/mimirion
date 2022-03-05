@@ -5,7 +5,7 @@ import { logger } from "../util/logger";
 export const handleError = (error: Error, res: Response) => {
     if (error instanceof ConfigProviderError) {
         return res.status(error.statusCode).json({
-            errror: error.message
+            error: error.message
         });
     } else {
         return res.status(400).json({

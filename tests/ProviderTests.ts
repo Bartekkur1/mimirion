@@ -34,6 +34,10 @@ export class ProviderTests<T extends ConfigProvider> {
         await this.provider.publishConfig(this.keys.accessKey, version);
     }
 
+    private async publish_new_version_expect_error(version) {
+        await expect(this.publish_new_version(version)).rejects.toThrow();
+    }
+
     private async get_published_config(versionId) {
         const { config, version } = await this.provider.getConfig(this.keys.accessKey);
         expect(config).toBe(TestConfiguration);
@@ -114,6 +118,12 @@ export class ProviderTests<T extends ConfigProvider> {
         await this.get_published_config(1);
         await this.unpublish_version(1);
         await this.get_config_expect_error(1);
+        await this.remove_store();
+    }
+
+    public async should_fail_to_publish_not_added_config() {
+        await this.create_store();
+        await this.publish_new_version_expect_error(1);
         await this.remove_store();
     }
 

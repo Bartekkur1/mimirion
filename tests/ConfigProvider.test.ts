@@ -14,6 +14,7 @@ for (let provider of implementations) {
         it('should_fail_to_remove_live_version', () => tests.should_fail_to_remove_live_version());
         it('should_unpublish_config', () => tests.should_unpublish_config());
         it('should_fail_to_remove_store_that_doesnt_exists', () => tests.should_fail_to_remove_store_that_doesnt_exists());
+        it('should_fail_to_publish_not_added_config', () => tests.should_fail_to_publish_not_added_config());
 
     });
 };

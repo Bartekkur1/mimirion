@@ -86,12 +86,16 @@ export default class MemoryProvider implements ConfigProvider {
             return config;
         });
 
-        if (store.liveVersion !== undefined && !store.configurations.map(config => config.version.id).includes(version)) {
+        const versions = store.configurations.map(config => config.version.id) || [];
+        if (!versions.includes(version)) {
             throw new ConfigProviderError('Invalid version number!', 400);
         }
 
         store.liveVersion = version;
-        store.configurations.find(config => config.version.id === version).version.live = true;
+        const liveConfig = store.configurations.find(config => config.version.id === version);
+        if (liveConfig !== undefined) {
+            liveConfig.version.live = true;
+        }
     }
 
     unpublishConfig(accessKey: string, version: number): void {
