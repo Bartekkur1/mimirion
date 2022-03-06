@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { getProvider } from "../providers";
-import { getAccessKey } from "../util/handler.helper";
-import { validateKey } from "../util/jwt";
-import { logger } from "../util/logger";
-import { ConfigStateAction } from "./types";
+import { getProvider } from "../../providers";
+import { getAccessKey } from "../../util/handler.helper";
+import { validateKey } from "../../util/jwt";
+import { logger } from "../../util/logger";
+import { ConfigStateAction } from "../types";
 
 export const configHandler = Router();
 
@@ -31,7 +31,7 @@ configHandler.patch('/config/:action/:version', async (req, res, next) => {
         const accessKey = getAccessKey(req);
         const { id } = validateKey(accessKey);
         const version = Number(req.params['version']);
-        logger.debug(`Publishing config in version ${version}`, accessKey);
+        logger.debug(`Publishing config in version ${version}`, id);
         if (action === ConfigStateAction.PUBLISH) {
             await getProvider().publishConfig(id, version);
         } else {
@@ -45,8 +45,14 @@ configHandler.patch('/config/:action/:version', async (req, res, next) => {
 
 configHandler.get('/config', async (req, res, next) => {
     try {
-        const accessKey = getAccessKey(req);
-        const { id } = validateKey(accessKey);
+        let id = undefined;
+        if (req.header('x-admin-key')) {
+            id = req.query.id;
+        } else {
+            const accessKey = getAccessKey(req);
+            const validationResult = validateKey(accessKey);
+            id = validationResult.id;
+        }
         logger.debug(`Fetching configuration`, id);
         const { config } = await getProvider().getConfig(id);
         return res.json(config).status(200);

@@ -36,10 +36,14 @@ export const signStore = (id: string, name: string): StoreKeys => {
 };
 
 export const validateKey = (key: string): TokenPayload => {
-    const { JWT_SECRET } = getConfig();
-    if (JWT_SECRET === undefined) {
-        logger.warn('JWT_SECRET is undefined, using default value!');
-    }
+    try {
+        const { JWT_SECRET } = getConfig();
+        if (JWT_SECRET === undefined) {
+            logger.warn('JWT_SECRET is undefined, using default value!');
+        }
 
-    return jwt.verify(key, JWT_SECRET || 'mimirionkey') as TokenPayload;
+        return jwt.verify(key, JWT_SECRET || 'mimirionkey') as TokenPayload;
+    } catch (err) {
+        throw new Error('Invalid access key!');
+    }
 };

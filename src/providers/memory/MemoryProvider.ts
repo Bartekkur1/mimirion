@@ -1,6 +1,6 @@
-import { Config, ConfigProvider, ConfigProviderError, ConfigStore, ConfigVersion, StoreKeys } from '../ConfigProvider';
+import { Config, ConfigProvider, ConfigProviderError, ConfigStore, ConfigVersion, StoreDetails, StoreKeys } from '../ConfigProvider';
 import { v4 } from 'uuid';
-import { signStore, validateKey } from '../../util/jwt';
+import { signStore } from '../../util/jwt';
 
 export default class MemoryProvider implements ConfigProvider {
 
@@ -22,6 +22,7 @@ export default class MemoryProvider implements ConfigProvider {
             name,
             configurations: [],
             liveVersion: undefined,
+            createdAt: Date.now()
         });
 
         return signStore(id, name);
@@ -32,6 +33,12 @@ export default class MemoryProvider implements ConfigProvider {
             throw new ConfigProviderError('Store not found!', 404);
         }
         this.stores = this.stores.filter(store => store.id !== id);
+    }
+
+    getStores(): StoreDetails[] {
+        return this.stores.map(({ id, liveVersion, name, createdAt }) => ({
+            id, liveVersion, name, createdAt
+        }));
     }
 
     getNewVersionLabel(store: ConfigStore): number {

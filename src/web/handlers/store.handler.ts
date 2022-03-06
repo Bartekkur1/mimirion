@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { getProvider } from '../providers';
-import { getAccessKey } from "../util/handler.helper";
-import { validateKey } from "../util/jwt";
-import { logger } from "../util/logger";
+import { getProvider } from '../../providers';
+import { getAccessKey } from "../../util/handler.helper";
+import { validateKey } from "../../util/jwt";
+import { logger } from "../../util/logger";
+import { adminAccess } from "../middleware/adminAccess.middleware";
 
 export const storeHandler = Router();
 
@@ -12,9 +13,9 @@ const validateStoreName = (name: string) => {
     }
 };
 
-storeHandler.put('/store/:name', async (req, res, next) => {
+storeHandler.put('/store/:name', adminAccess, async (req, res, next) => {
     try {
-        const name = req.params['name']
+        const name = req.params['name'];
         validateStoreName(name);
 
         logger.debug(`Creating store...`, name);
@@ -35,6 +36,15 @@ storeHandler.delete('/store', async (req, res, next) => {
         logger.debug(`Removing store...`, id);
         await getProvider().removeStore(id);
         return res.sendStatus(200);
+    } catch (err) {
+        next(err);
+    }
+});
+
+storeHandler.get('/store', adminAccess, async (req, res, next) => {
+    try {
+        const stores = await getProvider().getStores();
+        return res.json(stores).status(200);
     } catch (err) {
         next(err);
     }

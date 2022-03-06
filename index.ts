@@ -1,13 +1,11 @@
 import { json } from 'body-parser';
-import { config } from 'dotenv';
+import dotenv from 'dotenv';
 import express from 'express';
 import { logger } from './src/util/logger';
-import { storeHandler } from './src/web/store.handler';
-import { errorHandler } from './src/web/error.handler';
-import { configHandler } from './src/web/config.handler';
+import { handlers, middleware } from './src/web';
 import { initProvider } from './src/providers';
 
-config();
+dotenv.config();
 
 console.time('mimirion-start');
 
@@ -16,10 +14,10 @@ console.time('mimirion-start');
     const app = express();
 
     app.use(json());
-    app.use(storeHandler);
-    app.use(configHandler);
 
-    app.use(errorHandler);
+    app.use(handlers);
+    app.use(middleware);
+
     app.use((req, res) => {
         return res.sendStatus(404);
     })

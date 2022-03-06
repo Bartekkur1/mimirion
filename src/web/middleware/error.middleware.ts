@@ -1,9 +1,10 @@
 import { Response, Router } from "express";
-import { ConfigProviderError } from "../providers/ConfigProvider";
-import { logger } from "../util/logger";
+import { ConfigProviderError } from "../../providers/ConfigProvider";
+import { logger } from "../../util/logger";
+import { UnauthorizedActionException } from "./adminAccess.middleware";
 
 export const handleError = (error: Error, res: Response) => {
-    if (error instanceof ConfigProviderError) {
+    if (error instanceof ConfigProviderError || error instanceof UnauthorizedActionException) {
         return res.status(error.statusCode).json({
             error: error.message
         });
@@ -14,7 +15,7 @@ export const handleError = (error: Error, res: Response) => {
     }
 };
 
-export const errorHandler = ((err, req, res, next) => {
+export const errorMiddleware = ((err, req, res, next) => {
     if (err) {
         logger.error(err.message);
         return handleError(err, res);

@@ -1,7 +1,11 @@
-export interface ConfigStore {
+export interface StoreDetails {
     id: string;
     name: string;
     liveVersion: number;
+    createdAt: number;
+};
+
+export interface ConfigStore extends StoreDetails {
     configurations: Config[];
 };
 
@@ -55,6 +59,11 @@ export interface ConfigProvider {
      * @param id store id
      */
     removeStore(id: string): Promise<void> | void;
+
+    /**
+     * Returns list of created stores
+     */
+    getStores(): Promise<StoreDetails[]> | StoreDetails[];
 
     /**
      * Creates new pair of store keys
