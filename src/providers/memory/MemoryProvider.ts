@@ -27,8 +27,7 @@ export default class MemoryProvider implements ConfigProvider {
         return signStore(id, name);
     }
 
-    removeStore(accessKey: string): void {
-        const { id } = validateKey(accessKey);
+    removeStore(id: string): void {
         if (!this.stores.map(s => s.id).includes(id)) {
             throw new ConfigProviderError('Store not found!', 404);
         }
@@ -40,17 +39,15 @@ export default class MemoryProvider implements ConfigProvider {
         return ids.length === 0 ? 1 : (Math.max(...ids) + 1);
     }
 
-    private getStoreByAccessKey(accessKey: string) {
-        const { id } = validateKey(accessKey);
+    private getStoreByStoreId(id: string) {
         const storeIndex = this.stores.findIndex(store => store.id === id);
         if (storeIndex === -1) {
-            throw new ConfigProviderError('Invalid accessKey!', 401);
+            throw new ConfigProviderError('Invalid storeId!', 401);
         }
         return this.stores[storeIndex];
     }
 
-    restoreStore(restoreKey: string): StoreKeys {
-        const { id } = validateKey(restoreKey);
+    restoreStore(id: string): StoreKeys {
         const storeIndex = this.stores.findIndex(store => store.id === id);
         if (storeIndex === -1) {
             throw new ConfigProviderError('Invalid restoreKey!', 401);
@@ -59,10 +56,9 @@ export default class MemoryProvider implements ConfigProvider {
         return signStore(store.id, store.name);
     }
 
-    addConfig(accessKey: string, config: Object) {
-        validateKey(accessKey);
+    addConfig(storeId: string, config: Object) {
         const id = v4();
-        const store = this.getStoreByAccessKey(accessKey);
+        const store = this.getStoreByStoreId(storeId);
         const versionId = this.getNewVersionLabel(store);
 
         store.configurations.push({
@@ -78,8 +74,8 @@ export default class MemoryProvider implements ConfigProvider {
         return id;
     }
 
-    publishConfig(accessKey: string, version: number): void {
-        const store = this.getStoreByAccessKey(accessKey);
+    publishConfig(storeId: string, version: number): void {
+        const store = this.getStoreByStoreId(storeId);
 
         store.configurations = store.configurations.map(config => {
             config.version.live = false;
@@ -98,8 +94,8 @@ export default class MemoryProvider implements ConfigProvider {
         }
     }
 
-    unpublishConfig(accessKey: string, version: number): void {
-        const store = this.getStoreByAccessKey(accessKey);
+    unpublishConfig(storeId: string, version: number): void {
+        const store = this.getStoreByStoreId(storeId);
 
         if (store.liveVersion !== undefined && !store.configurations.map(config => config.version.id).includes(version)) {
             throw new ConfigProviderError('Invalid version number!', 400);
@@ -109,8 +105,8 @@ export default class MemoryProvider implements ConfigProvider {
         store.configurations.find(config => config.version.id === version).version.live = false;
     }
 
-    getConfig(accessKey: string): Config {
-        const store = this.getStoreByAccessKey(accessKey);
+    getConfig(storeId: string): Config {
+        const store = this.getStoreByStoreId(storeId);
         const config = store.configurations.find(config => config.version.id === store.liveVersion);
         if (config === undefined) {
             throw new ConfigProviderError('No published configuration!', 400);
@@ -118,8 +114,8 @@ export default class MemoryProvider implements ConfigProvider {
         return config;
     }
 
-    removeConfig(accessKey: string, version: number): void {
-        const store = this.getStoreByAccessKey(accessKey);
+    removeConfig(storeId: string, version: number): void {
+        const store = this.getStoreByStoreId(storeId);
 
         if (!store.configurations.map(config => config.version.id).includes(version)) {
             throw new ConfigProviderError('Invalid version number!', 400);
@@ -132,7 +128,7 @@ export default class MemoryProvider implements ConfigProvider {
         store.configurations = store.configurations.filter(config => config.version.id !== version);
     }
 
-    getVersions(accessKey: string): ConfigVersion[] {
-        return this.getStoreByAccessKey(accessKey).configurations.map(config => config.version);
+    getVersions(storeId: string): ConfigVersion[] {
+        return this.getStoreByStoreId(storeId).configurations.map(config => config.version);
     }
 }

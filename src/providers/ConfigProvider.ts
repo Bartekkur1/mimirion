@@ -52,62 +52,62 @@ export interface ConfigProvider {
 
     /**
      * Removes store with all configurations
-     * @param accessKey store key
+     * @param id store id
      */
-    removeStore(accessKey: string): Promise<void> | void;
+    removeStore(id: string): Promise<void> | void;
 
     /**
      * Creates new pair of store keys
      * @param restoreKey
      * @throws {ConfigProviderError} Will throw error in case of invalid restoreKey
      */
-    restoreStore(restoreKey: string): Promise<StoreKeys> | StoreKeys;
+    restoreStore(id: string): Promise<StoreKeys> | StoreKeys;
 
     /**
      * Adds new configuration into given store
-     * @param accessKey store key
+     * @param id store id
      * @param config configuration object instance
      * @returns id of a new configuration
-     * @throws {ConfigProviderError} Will throw error in case of invalid accessKey or invalid configuration object
+     * @throws {ConfigProviderError} Will throw error in case of invalid id or invalid configuration object
      */
-    addConfig(accessKey: string, config: Object): Promise<string> | string;
+    addConfig(id: string, config: Object): Promise<string> | string;
 
     /**
      * Publish new configuration
-     * @param accessKey store key
+     * @param id store id
      * @param version version number to publish
-     * @throws {ConfigProviderError} Will throw error in case of invalid accessKey or invalid version number
+     * @throws {ConfigProviderError} Will throw error in case of invalid id or invalid version number
      */
-    publishConfig(accessKey: string, version: number): Promise<void> | void;
+    publishConfig(id: string, version: number): Promise<void> | void;
 
     /**
      * Sets given version live status to false
-     * @param accessKey store key
+     * @param id store id
      * @param version to remove
      */
-    unpublishConfig(accessKey: string, version: number): Promise<void> | void;
+    unpublishConfig(id: string, version: number): Promise<void> | void;
 
     /**
-     * Returns given accessKey store current live configuration
+     * Returns given id store current live configuration
      * Returns undefined if there is no live version
-     * @param accessKey store key
-     * @throws {ConfigProviderError} Will throw error in case of invalid accessKey or not published config
+     * @param id store id
+     * @throws {ConfigProviderError} Will throw error in case of invalid id or not published config
      */
-    getConfig(accessKey: string): Promise<Config> | Config;
+    getConfig(id: string): Promise<Config> | Config;
 
     /**
-     * Removes given accessKey store configuration of given version
-     * @param accessKey store key
+     * Removes given id store configuration of given version
+     * @param id store id
      * @param version 
-     * @throws {ConfigProviderError} Will throw error in case of invalid accessKey or invalid version number
+     * @throws {ConfigProviderError} Will throw error in case of invalid id or invalid version number
      */
-    removeConfig(accessKey: string, version: number): Promise<void> | void;
+    removeConfig(id: string, version: number): Promise<void> | void;
 
     /**
      * Returns list of configuration versions and creation dates
-     * @param accessKey store key
+     * @param id store id
      */
-    getVersions(accessKey: string): Promise<ConfigVersion[]> | ConfigVersion[];
+    getVersions(id: string): Promise<ConfigVersion[]> | ConfigVersion[];
 
     /**
      * Returns new, unique incremented version number

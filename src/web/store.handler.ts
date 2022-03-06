@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { getProvider } from '../providers';
 import { getAccessKey } from "../util/handler.helper";
+import { validateKey } from "../util/jwt";
 import { logger } from "../util/logger";
 
 export const storeHandler = Router();
@@ -30,8 +31,9 @@ storeHandler.put('/store/:name', async (req, res, next) => {
 storeHandler.delete('/store', async (req, res, next) => {
     try {
         const accessKey = getAccessKey(req);
-        logger.debug(`Removing store...`, accessKey);
-        await getProvider().removeStore(accessKey);
+        const { id } = validateKey(accessKey);
+        logger.debug(`Removing store...`, id);
+        await getProvider().removeStore(id);
         return res.sendStatus(200);
     } catch (err) {
         next(err);

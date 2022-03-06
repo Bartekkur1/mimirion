@@ -1,4 +1,5 @@
 import { ConfigProvider, StoreKeys } from "../src/providers/ConfigProvider";
+import { validateKey } from "../src/util/jwt";
 
 const TestConfiguration = {
     test: 123,
@@ -12,26 +13,28 @@ export class ProviderTests<T extends ConfigProvider> {
 
     private provider: T;
     private testStoreName = 'testStore1';
-    private keys: StoreKeys;
+    private storeId = undefined;
 
     constructor(provider: T) {
         this.provider = provider;
     }
 
     private async create_store() {
-        this.keys = await this.provider.createStore(this.testStoreName);
-        const { accessKey, restoreKey } = this.keys;
+        const keys = await this.provider.createStore(this.testStoreName);
+        const { accessKey, restoreKey } = keys;
+        const { id } = validateKey(accessKey);
+        this.storeId = id;
         expect(typeof accessKey).toBe('string');
         expect(typeof restoreKey).toBe('string');
     }
 
     private async add_config() {
-        const configId = await this.provider.addConfig(this.keys.accessKey, TestConfiguration);
+        const configId = await this.provider.addConfig(this.storeId, TestConfiguration);
         expect(typeof configId).toBe('string');
     }
 
     private async publish_new_version(version) {
-        await this.provider.publishConfig(this.keys.accessKey, version);
+        await this.provider.publishConfig(this.storeId, version);
     }
 
     private async publish_new_version_expect_error(version) {
@@ -39,7 +42,7 @@ export class ProviderTests<T extends ConfigProvider> {
     }
 
     private async get_published_config(versionId) {
-        const { config, version } = await this.provider.getConfig(this.keys.accessKey);
+        const { config, version } = await this.provider.getConfig(this.storeId);
         expect(config).toBe(TestConfiguration);
         expect(version.id).toBe(versionId);
     }
@@ -49,15 +52,15 @@ export class ProviderTests<T extends ConfigProvider> {
     }
 
     private async remove_config(version) {
-        await this.provider.removeConfig(this.keys.accessKey, version);
+        await this.provider.removeConfig(this.storeId, version);
     }
 
     private async remove_store() {
-        await this.provider.removeStore(this.keys.accessKey);
+        await this.provider.removeStore(this.storeId);
     }
 
     private async get_versions(expectedVersion: number[]) {
-        const versions = await this.provider.getVersions(this.keys.accessKey);
+        const versions = await this.provider.getVersions(this.storeId);
         const ids = versions.map(v => v.id);
         expectedVersion.forEach(v => expect(ids).toContain(v));
     }
@@ -71,7 +74,7 @@ export class ProviderTests<T extends ConfigProvider> {
     }
 
     private async unpublish_version(version) {
-        await this.provider.unpublishConfig(this.keys.accessKey, version);
+        await this.provider.unpublishConfig(this.storeId, version);
     }
 
     // tests
@@ -128,7 +131,7 @@ export class ProviderTests<T extends ConfigProvider> {
     }
 
     public async should_fail_to_remove_store_that_doesnt_exists() {
-        this.keys.accessKey = '';
+        this.storeId = '';
         await this.remove_store_expect_error();
     }
 }
