@@ -31,7 +31,8 @@ const createToken = (id: string, name: string, type: KeyType) => {
 export const signStore = (id: string, name: string): StoreKeys => {
     return {
         accessKey: createToken(id, name, KeyType.ACCESS_KEY),
-        restoreKey: createToken(id, name, KeyType.RESTORE_KEY)
+        restoreKey: createToken(id, name, KeyType.RESTORE_KEY),
+        storeId: id
     };
 };
 

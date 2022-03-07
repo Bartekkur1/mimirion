@@ -16,6 +16,7 @@ export interface Config {
 };
 
 export interface StoreKeys {
+    storeId: string;
     accessKey: string;
     restoreKey: string;
 };

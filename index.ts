@@ -4,6 +4,7 @@ import express from 'express';
 import { logger } from './src/util/logger';
 import { handlers, middleware } from './src/web';
 import { initProvider } from './src/providers';
+import cors from 'cors';
 
 dotenv.config();
 
@@ -13,6 +14,7 @@ console.time('mimirion-start');
     await initProvider();
     const app = express();
 
+    app.use(cors())
     app.use(json());
 
     app.use(handlers);

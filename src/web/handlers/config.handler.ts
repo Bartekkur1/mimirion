@@ -3,18 +3,23 @@ import { getProvider } from "../../providers";
 import { getAccessKey } from "../../util/handler.helper";
 import { validateKey } from "../../util/jwt";
 import { logger } from "../../util/logger";
-import { ConfigStateAction } from "../types";
+import { adminAccess } from "../middleware/adminAccess.middleware";
+import { validator } from "../middleware/validator";
+import {
+    ConfigPatch, ConfigPatchValidator, ConfigStateAction, DeleteConfig,
+    DeleteConfigValidator, IdRequest, IdRequestValidator
+} from "./types";
 
 export const configHandler = Router();
 
-configHandler.put('/config', async (req, res, next) => {
+/**
+ * Creates new configuration inside given store id
+ * Required admin access
+ * Validates query store id
+ */
+configHandler.put('/config', adminAccess, async (req, res, next) => {
     try {
-        const accessKey = getAccessKey(req);
-        const { id } = validateKey(accessKey);
-        if (Object.keys(req.body).length === 0) {
-            throw new Error('Invalid configuration body!');
-        }
-
+        const { id } = validator<IdRequest>(IdRequestValidator, req.query);
         const configId = await getProvider().addConfig(id, req.body);
         return res.json({ id: configId }).status(200);
     } catch (err) {
@@ -22,20 +27,20 @@ configHandler.put('/config', async (req, res, next) => {
     }
 });
 
-configHandler.patch('/config/:action/:version', async (req, res, next) => {
+/**
+ * Updates configuration status by given version
+ * Required admin access
+ * Validates query store id, action, version
+ */
+configHandler.patch('/config/:action/:version', adminAccess, async (req, res, next) => {
     try {
-        const action = req.params['action'] as ConfigStateAction;
-        if (action !== 'publish' && action !== 'unpublish') {
-            throw new Error('Invalid action!');
-        }
-        const accessKey = getAccessKey(req);
-        const { id } = validateKey(accessKey);
-        const version = Number(req.params['version']);
+        const { id } = validator<IdRequest>(IdRequestValidator, req.query);
+        const { version, action } = validator<ConfigPatch>(ConfigPatchValidator, req.params);
         logger.debug(`Publishing config in version ${version}`, id);
         if (action === ConfigStateAction.PUBLISH) {
-            await getProvider().publishConfig(id, version);
+            await getProvider().publishConfig(id, Number(version));
         } else {
-            await getProvider().unpublishConfig(id, version);
+            await getProvider().unpublishConfig(id, Number(version));
         }
         return res.sendStatus(200);
     } catch (err) {
@@ -43,11 +48,16 @@ configHandler.patch('/config/:action/:version', async (req, res, next) => {
     }
 });
 
+/**
+ * Returns given store live configuration
+ * If given admin key, returns given id configuration
+ */
 configHandler.get('/config', async (req, res, next) => {
     try {
         let id = undefined;
         if (req.header('x-admin-key')) {
-            id = req.query.id;
+            const idRequest = validator<IdRequest>(IdRequestValidator, req.query);
+            id = idRequest.id;
         } else {
             const accessKey = getAccessKey(req);
             const validationResult = validateKey(accessKey);
@@ -61,11 +71,14 @@ configHandler.get('/config', async (req, res, next) => {
     }
 });
 
-configHandler.delete('/config/:version', async (req, res, next) => {
+/**
+ * Removes configuration given version
+ * Required admin access
+ * Validates query store id
+ */
+configHandler.delete('/config/:version', adminAccess, async (req, res, next) => {
     try {
-        const accessKey = getAccessKey(req);
-        const version = Number(req.params['version']);
-        const { id } = validateKey(accessKey);
+        const { id, version } = validator<DeleteConfig>(DeleteConfigValidator, req.query);
         logger.debug(`Removing configuration version ${version}`, id);
         await getProvider().removeConfig(id, version);
         return res.sendStatus(200);
@@ -74,10 +87,14 @@ configHandler.delete('/config/:version', async (req, res, next) => {
     }
 });
 
-configHandler.get('/config/versions', async (req, res, next) => {
+/**
+ * Returns list of given configuration versions
+ * Required admin access
+ * Validates query store id
+ */
+configHandler.get('/config/versions', adminAccess, async (req, res, next) => {
     try {
-        const accessKey = getAccessKey(req);
-        const { id } = validateKey(accessKey);
+        const { id } = validator<IdRequest>(IdRequestValidator, req.query);
         logger.debug(`Fetching store versions`, id);
         const versions = await getProvider().getVersions(id);
         return res.json(versions).status(200);
