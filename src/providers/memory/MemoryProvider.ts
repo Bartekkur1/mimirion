@@ -112,9 +112,17 @@ export default class MemoryProvider implements ConfigProvider {
         store.configurations.find(config => config.version.id === version).version.live = false;
     }
 
-    getConfig(storeId: string): Config {
+    getConfig(storeId: string, version?: number): Config {
         const store = this.getStoreByStoreId(storeId);
-        const config = store.configurations.find(config => config.version.id === store.liveVersion);
+        let config = undefined;
+        if (version !== undefined) {
+            if (!store.configurations.map(c => c.version.id).includes(Number(version))) {
+                throw new ConfigProviderError('Invalid version number!', 400);
+            }
+            config = store.configurations.find(config => config.version.id === Number(version));
+        } else {
+            config = store.configurations.find(config => config.version.id === store.liveVersion);
+        }
         if (config === undefined) {
             throw new ConfigProviderError('No published configuration!', 400);
         }

@@ -103,7 +103,7 @@ export interface ConfigProvider {
      * @param id store id
      * @throws {ConfigProviderError} Will throw error in case of invalid id or not published config
      */
-    getConfig(id: string): Promise<Config> | Config;
+    getConfig(id: string, version?: number): Promise<Config> | Config;
 
     /**
      * Removes given id store configuration of given version

@@ -7,7 +7,7 @@ import { adminAccess } from "../middleware/adminAccess.middleware";
 import { validator } from "../middleware/validator";
 import {
     ConfigPatch, ConfigPatchValidator, ConfigStateAction, DeleteConfig,
-    DeleteConfigValidator, IdRequest, IdRequestValidator
+    DeleteConfigValidator, GetConfig, GetConfigValidator, IdRequest, IdRequestValidator
 } from "./types";
 
 export const configHandler = Router();
@@ -54,17 +54,19 @@ configHandler.patch('/config/:action/:version', adminAccess, async (req, res, ne
  */
 configHandler.get('/config', async (req, res, next) => {
     try {
-        let id = undefined;
+        let storeId = undefined;
+        let configVersion = undefined;
         if (req.header('x-admin-key')) {
-            const idRequest = validator<IdRequest>(IdRequestValidator, req.query);
-            id = idRequest.id;
+            const { id, version } = validator<GetConfig>(GetConfigValidator, req.query);
+            configVersion = version;
+            storeId = id;
         } else {
             const accessKey = getAccessKey(req);
             const validationResult = validateKey(accessKey);
-            id = validationResult.id;
+            storeId = validationResult.id;
         }
-        logger.debug(`Fetching configuration`, id);
-        const { config } = await getProvider().getConfig(id);
+        logger.debug(`Fetching configuration`, storeId);
+        const { config } = await getProvider().getConfig(storeId, configVersion);
         return res.json(config).status(200);
     } catch (err) {
         next(err);

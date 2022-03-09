@@ -9,6 +9,11 @@ export interface IdRequest {
     id: string;
 }
 
+export interface GetConfig {
+    id: string;
+    version?: number;
+}
+
 export const IdRequestValidator = Joi.object({
     id: Joi.string().uuid().required()
 });
@@ -41,3 +46,7 @@ export interface PutStore {
 export const NameValidator = Joi.object({
     name: Joi.string().min(3).required().trim(true)
 });
+
+export const GetConfigValidator = Joi.object({
+    version: Joi.number().optional()
+}).concat(IdRequestValidator);
